@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
 
 /**
  * Created by Naknut on 16/09/14.
@@ -8,31 +7,30 @@ import java.util.ArrayList;
 public class ClientThread extends Thread{
 
     Socket client;
-    ClientPool clientPool;
+    String username = "Unknown";
 
-    public ClientThread(Socket client, ClientPool clientPool) {
+    public ClientThread(Socket client) {
         this.client = client;
-        this.clientPool = clientPool;
     }
 
     public void run() {
+        ClientPool.getInstance().sendWelcomeMessage(this);
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             String line;
-            while ((line = in.readLine()) != null) {
+            while ((line = in.readLine()) != null && client.isConnected()) {
                 handleInput(line);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            ClientPool.getInstance().disconnectMe(this);
         }
     }
 
     public void sendToClient(String message) {
-        OutputStream outstream;
+        PrintWriter out;
         try {
-            outstream = client.getOutputStream();
-            PrintWriter out = new PrintWriter(outstream);
-            out.print(message);
+            out = new PrintWriter(client.getOutputStream(), true);
+            out.println(message);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -47,7 +45,7 @@ public class ClientThread extends Thread{
                 quit();
             }
             else if(input.startsWith("/who")){
-               sendToClient("Who command used");
+               ClientPool.getInstance().listAllUsers(this);
             }
            else if(input.startsWith("/nick")){
                 String[] parameters = input.split(" ");
@@ -77,18 +75,16 @@ public class ClientThread extends Thread{
 
         // Input is an ordinary message
         else{
-            clientPool.sendToAllButMe(this, input);
+            ClientPool.getInstance().sendToAllButMe(this, input);
         }
-
     }
 
     private void quit() {
-        // TODO
-        sendToClient("Quit command used");
+        ClientPool.getInstance().disconnectMe(this);
     }
 
     private void changeUserName(String newName) {
-        // TODO
-        sendToClient("/nick command used properly with nick "+newName);
+        ClientPool.getInstance().changeUsername(newName, this);
     }
+
 }

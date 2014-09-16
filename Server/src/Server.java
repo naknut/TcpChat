@@ -7,14 +7,12 @@ import java.net.Socket;
  */
 public class Server {
 
-    static ClientPool clientPool = new ClientPool();
-
     public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(1337);
         while (true) {
-            ServerSocket serverSocket = new ServerSocket(1337);
             Socket client = serverSocket.accept();
-            ClientThread clientThread = new ClientThread(client, clientPool);
-            clientPool.add(clientThread);
+            ClientThread clientThread = new ClientThread(client);
+            ClientPool.getInstance().add(clientThread);
             new Thread(clientThread).start();
         }
     }
