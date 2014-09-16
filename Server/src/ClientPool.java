@@ -4,7 +4,7 @@ import java.util.ArrayList;
  * Created by Naknut on 16/09/14.
  */
 public class ClientPool {
-    ArrayList<ClientThread> clientPool = new ArrayList<ClientThread>();
+    private ArrayList<ClientThread> clientPool = new ArrayList<ClientThread>();
 
     public void add(ClientThread clientThread) {
         clientPool.add(clientThread);
@@ -16,4 +16,9 @@ public class ClientPool {
                 clientThread.sendToClient(message);
         }
     }
+
+    private synchronized ArrayList<ClientThread> getClients(){
+        return (ArrayList<ClientThread>) clientPool.clone();
+    }
+
 }
