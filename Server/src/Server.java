@@ -9,6 +9,7 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(1337);
+        System.out.println("Chat server is running");
         while (true) {
             Socket client = serverSocket.accept();
             ClientThread clientThread = new ClientThread(client);

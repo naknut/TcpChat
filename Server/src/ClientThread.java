@@ -18,10 +18,15 @@ public class ClientThread extends Thread{
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             String line;
-            while ((line = in.readLine()) != null && client.isConnected()) {
+            while ((line = in.readLine()) != null && !client.isClosed()) {
                 handleInput(line);
             }
+
         } catch (IOException e) {
+            System.out.println("IOException in ClientThread");
+        }
+        finally{
+            System.out.println("Disconnecting client");
             ClientPool.getInstance().disconnectMe(this);
         }
     }
