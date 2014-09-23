@@ -21,43 +21,53 @@ public class ClientPool {
     }
 
     public void add(ClientThread clientThread) {
-        clientPool.add(clientThread);
+        synchronized (clientPool) {
+            clientPool.add(clientThread);
+        }
     }
 
     public void sendToAllButMe(ClientThread sender, String message) {
-        for(ClientThread clientThread : clientPool) {
-            if(clientThread != sender)
-                clientThread.sendToClient(sender.username + ": " + message);
+        synchronized (clientPool) {
+            for (ClientThread clientThread : clientPool) {
+                if (clientThread != sender)
+                    clientThread.sendToClient(sender.username + ": " + message);
+            }
         }
     }
 
     public void disconnectMe(ClientThread sender) {
         try {
-            sender.client.close();
-            clientPool.remove(sender);
-            sendToAll(sender.username + " has disconnected.");
+            synchronized (clientPool) {
+                sender.client.close();
+                clientPool.remove(sender);
+                sendToAll(sender.username + " has disconnected.");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void changeUsername(String username, ClientThread caller) {
-        for(ClientThread clientThread : clientPool) {
-            if(clientThread.username.equals(username)) {
-                caller.sendToClient("Username allready in use");
-                return;
+        synchronized (clientPool) {
+            for (ClientThread clientThread : clientPool) {
+                if (clientThread.username.equals(username)) {
+                    caller.sendToClient("Username allready in use");
+                    return;
+                }
             }
+            String oldName = caller.username;
+            caller.username = username;
+            sendToAll(oldName + " changed name to " + username);
         }
-        String oldName = caller.username;
-        caller.username = username;
-        sendToAll(oldName + " changed name to " + username);
     }
 
     public void listAllUsers(ClientThread caller) {
         String users = "";
-        for(ClientThread clientThread : clientPool)
-            users += clientThread.username + " ";
-        caller.sendToClient(users);
+        synchronized (clientPool) {
+            for (ClientThread clientThread : clientPool)
+                users += clientThread.username + " ";
+            caller.sendToClient(users);
+        }
     }
 
     public void sendWelcomeMessage(ClientThread caller) {
@@ -65,7 +75,9 @@ public class ClientPool {
     }
 
     private void sendToAll(String message) {
-        for(ClientThread clientThread : clientPool)
-            clientThread.sendToClient(message);
+        synchronized (clientPool) {
+            for (ClientThread clientThread : clientPool)
+                clientThread.sendToClient(message);
+        }
     }
 }
