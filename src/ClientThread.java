@@ -27,7 +27,9 @@ public class ClientThread extends Thread{
         }
         finally{
             System.out.println("Disconnecting client");
-            ClientPool.getInstance().disconnectMe(this);
+            if(!client.isClosed()){
+                ClientPool.getInstance().disconnectMe(this);
+            }
         }
     }
 
